@@ -591,6 +591,355 @@ def subarray_sum_count(nums: list[int], k: int) -> int:
         pre_sum_map[remainder] += 1
     return count
 
+# Hard problems on arrays
+
+def generate_pascal_triangle(num_rows: int) -> list[list[int]]:
+    """
+    Returns the pascal sequence of given rows in matrix
+    """
+    def generate_row(row: int) -> list[int]:
+        temp_row = [1]
+        ans = 1
+        for col in range(1, row):
+            ans *= row - col
+            ans //= col
+            temp_row.append(ans)
+        return temp_row
+    pascal = []
+    for row in range(1, num_rows + 1):
+        pascal.append(generate_row(row))
+    return pascal
+
+def majority_element_2(nums: list[int]) -> list[int]:
+    """
+    Returns the elements that appear more than floor(n / 3) times where n is the size of array
+    """
+    element1, element2 = None, None
+    count1, count2 = 0, 0
+    for num in nums:
+        if count1 == 0 and num != element2:
+            element1 = num
+            count1 = 1
+        elif count2 == 0 and num != element1:
+            element2 = num
+            count2 = 1
+        elif element1 == num:
+            count1 += 1
+        elif element2 == num:
+            count2 += 1
+        else:
+            count1 -= 1
+            count2 -= 1
+    
+    count1, count2 = 0, 0
+    for num in nums:
+        if num == element1:
+            count1 += 1
+        if num == element2:
+            count2 += 1
+    ans = []
+    if count1 > len(nums) // 3:
+        ans.append(element1)
+    if count2 > len(nums) // 3:
+        ans.append(element2)
+    ans.sort()
+    return ans
+
+def three_sum(nums: list[int]) -> list[list[int]]:
+    """
+    Returns all triplets which sum is equal to zero
+    """
+    triplets = []
+    nums.sort()
+    n = len(nums)
+    for i in range(n):
+        if i > 0 and nums[i] == nums[i - 1]:
+            continue
+        j = i + 1
+        k = n - 1
+        while j < k:
+            s = nums[i] + nums[j] + nums[k]
+            if s < 0:
+                j += 1
+            elif s > 0:
+                k -= 1
+            else:
+                triplets.append([nums[i], nums[j], nums[k]])
+                j += 1
+                k -= 1
+                while j < n and nums[j] == nums[j - 1]:
+                    j += 1
+                while k > 0 and nums[k] == nums[k + 1]:
+                    k -= 1
+    return triplets
+
+def four_sum(nums: list[int], target: int) -> list[list[int]]:
+    """
+    Returns the unique quadruplets wich sum is equal to target
+    """
+    nums.sort()
+    n = len(nums)
+    quadruplets = []
+    for i in range(n):
+        if i > 0 and nums[i] == nums[i - 1]:
+            continue
+        for j in range(i + 1, n):
+            if j > i + 1 and nums[j] == nums[j - 1]:
+                continue
+            k = j + 1
+            l = n - 1
+            while k < l:
+                s = nums[i] + nums[j] + nums[k] + nums[l]
+                if s < target:
+                    k += 1
+                elif s > target:
+                    l -= 1
+                else:
+                    quadruplets.append([nums[i], nums[j], nums[k], nums[l]])
+                    k += 1
+                    l -= 1
+                    while k < l and nums[k] == nums[k - 1]:
+                        k += 1
+                    while l > k and nums[l] == nums[l + 1]:
+                        l -= 1
+    return quadruplets
+
+def largest_subarray_with_zero_sum(arr: list[int], n: int) -> int:
+    #Code here
+    # O(n ^ 2) solution
+    # largest = 0
+    # for i in range(n):
+    #     s = 0
+    #     for j in range(i, n):
+    #         s += arr[j]
+    #         if s == 0:
+    #             largest = max(largest, j - i + 1)
+    # return largest
+    
+    # O(n) solution
+    largest = 0
+    pre_sum = {}
+    curr_sum = 0
+    for i in range(n):
+        curr_sum += arr[i]
+        if curr_sum == 0:
+            largest = max(largest, i + 1)
+        elif curr_sum in pre_sum:
+            largest = max(largest, i - pre_sum[curr_sum])
+        else:
+            pre_sum[curr_sum] = i
+    return largest
+
+def count_of_subarrays_with_given_xor(nums: list[int], k: int) -> int:
+    """
+    Return the count of subarrays with given xor k
+    """
+    n = len(nums)
+    pre_xor = defaultdict(int)
+    pre_xor[0] = 1
+    xr = 0
+    count = 0
+    for i in range(n):
+        # prefix xor till index i
+        xr ^= nums[i]
+        
+        # by formula: x = xr ^ k
+        x = xr ^ k
+        
+        # Add the occurrence of xr^k to the count
+        count += pre_xor[x]
+        
+        # insert the prefix xor till index i into the dictionary
+        pre_xor[xr] += 1
+    return count
+
+def merge_overlaping_subintervals(intervals: list[list[int]]) -> list[list[int]]:
+    """Returns the non-overlaping intervals after merging the overlaping intervals"""
+    intervals.sort()
+    ans = []
+    for i in range(len(intervals)):
+        curr_interval = intervals[i]
+        if ans and ans[-1][1] >= curr_interval[0]:
+            ans[-1][1] = max(ans[-1][1], curr_interval[1])
+        else:
+            ans.append(curr_interval)
+    return ans
+
+def find_missing_and_repeating_num(arr: list[int], n: int) -> list[int]:
+    """
+    Returns the missing and repeating numbers in array from 1 to n
+    """
+    # Find Sn and S2n:
+    SN = (n * (n + 1)) // 2
+    S2N = (n * (n + 1) * (2 * n + 1)) // 6
+
+    # Calculate S and S2:
+    S, S2 = 0, 0
+    for i in range(n):
+        S += arr[i]
+        S2 += arr[i] * arr[i]
+
+    # S-Sn = X-Y:
+    val1 = S - SN
+
+    # S2-S2n = X^2-Y^2:
+    val2 = S2 - S2N
+
+    # Find X+Y = (X^2-Y^2)/(X-Y):
+    val2 = val2 // val1
+
+    # Find X and Y: X = ((X+Y)+(X-Y))/2 and Y = X-(X-Y),
+    # Here, X-Y = val1 and X+Y = val2:
+    x = (val1 + val2) // 2
+    y = x - val1
+
+    return [x, y]
+
+# Helper merge and merge sort function for count inversion
+def inverse_merge(arr: list, low: int, mid: int, high: int) -> int:
+    """
+    Merge the arrays (low to mid) and (mid+1 to high):
+    """
+    count = 0
+    temp = [0] * ((high - low) + 1)
+    left, right, k = low, mid+1, 0
+    while left <= mid and right <= high:
+        if arr[left] <= arr[right]:
+            temp[k] = arr[left]
+            left += 1
+        else:
+            temp[k] = arr[right]
+            count += (mid - left + 1)
+            right += 1
+        k += 1
+    while left <= mid:
+        temp[k] = arr[left]
+        left += 1
+        k += 1
+    while right <= high:
+        temp[k] = arr[right]
+        right += 1
+        k += 1
+    
+    # copy the merged array to its original array
+    k, i = 0, low
+    while i <= high:
+        arr[i] = temp[k]
+        i += 1
+        k += 1
+    return count
+
+def inverse_merge_sort(arr: list, low: int, high: int) -> int:
+    """
+    Sort the given list arr recursively
+    """
+    count = 0
+    # base case
+    if low < high:
+        # divid the array in two parts
+        mid = (low + high) // 2
+        
+        # Recursive calls
+        # for left part (low to mid)
+        count += merge_sort(arr, low, mid)
+        # for right part (mid + 1 to high)
+        count += merge_sort(arr, mid + 1, high)
+
+        # now merge the both sorted array and count inversions
+        count += merge(arr, low, mid, high)
+    return count
+
+def count_inversions(arr: list[int], n: int) -> int:
+    """
+    Return the count of inversions in array
+    """
+    count = inverse_merge_sort(arr, 0, n - 1)
+    return count
+
+# Helper merge and merge-sort functions for reverse pairs
+def merge(arr: list, low: int, mid: int, high: int) -> int:
+    """
+    Merge the arrays (low to mid) and (mid+1 to high):
+    """
+    count = 0
+    # count reverse pairs
+    i, j = low, mid + 1
+    while i <= mid:
+        while j <= high and arr[i] > 2 * arr[j]:
+            j += 1
+        count += j - (mid + 1)
+        i += 1
+    # merge the sorted arrays to one array
+    temp = [0] * ((high - low) + 1)
+    left, right, k = low, mid+1, 0
+    while left <= mid and right <= high:
+        if arr[left] <= arr[right]:
+            temp[k] = arr[left]
+            left += 1
+        else:
+            temp[k] = arr[right]
+            right += 1
+        k += 1
+    while left <= mid:
+        temp[k] = arr[left]
+        left += 1
+        k += 1
+    while right <= high:
+        temp[k] = arr[right]
+        right += 1
+        k += 1
+    
+    # copy the merged array to its original array
+    k, i = 0, low
+    while i <= high:
+        arr[i] = temp[k]
+        i += 1
+        k += 1
+    return count
+
+def merge_sort(arr: list, low: int, high: int) -> int:
+    """
+    Sort the given list arr recursively
+    """
+    count = 0
+    # base case
+    if low < high:
+        # divid the array in two parts
+        mid = (low + high) // 2
+        
+        # Recursive calls
+        # for left part (low to mid)
+        count += merge_sort(arr, low, mid)
+        # for right part (mid + 1 to high)
+        count += merge_sort(arr, mid + 1, high)
+
+        # now merge the both sorted array and count inversions
+        count += merge(arr, low, mid, high)
+    return count
+
+def reverse_pairs(nums: list[int]) -> int:
+    """
+    Returns the count of reverse pairs in array.
+    reverse pair = nums[i] > 2 * nums[j] for all i < j
+    """
+    return merge_sort(nums, 0, len(nums) - 1)
+
+def max_subarray_product(nums: list[int]) -> int:
+    """
+    Returns maximum subarray product
+    """
+    n = len(nums)
+    prefix, suffix = 1, 1
+    max_pro = float('-inf')
+    for i in range(n):
+        if prefix == 0:
+            prefix = 1
+        if suffix == 0:
+            suffix = 1
+        prefix *= nums[i]
+        suffix *= nums[n - i - 1]
+        max_pro = max(max_pro, max(prefix, suffix))
+    return int(max_pro)
 
 if __name__ == '__main__':
     n = int(input())
@@ -634,4 +983,16 @@ if __name__ == '__main__':
 
     # print(spiral_order(arr1))
 
-    print(subarray_sum_count(arr, 0))
+    # print(subarray_sum_count(arr, 0))
+    # print(generate_pascal_triangle(6))
+    # print(majority_element_2(arr))
+    # print(three_sum(arr))
+    # print(four_sum(arr, 8))
+    # print(largest_subarray_with_zero_sum(arr, n))
+    # print(count_of_subarrays_with_given_xor(arr, n))
+    # intervals = [[1,4],[4,5]]
+    # print(merge_overlaping_subintervals(intervals))
+    # print(find_missing_and_repeating_num(arr, n))
+    # print(count_inversions(arr, n))
+    # print(reverse_pairs(arr))
+    print(max_subarray_product(arr))
