@@ -48,7 +48,7 @@ def find_floor(nums: list[int], target: int) -> int:
     return floor_idx
 
 def lower_bound(nums: list[int], target: int) -> int:
-    """Returns theindex of lower bound of target in array otherwise size of array"""
+    """Returns the index of lower bound of target in array otherwise size of array"""
     low, high = 0, len(nums) - 1
     ans = high + 1
     while low <= high:
@@ -479,6 +479,123 @@ def find_kth_element(arr1: list[int], arr2: list[int], k: int) -> int:
             low = mid1 + 1
     return 0
 
+# Binary Search on 2D arrays
+
+def row_with_max_1s(arr: list[list[int]]) -> int:
+    """Returns the the row index with maximum number of 1's"""
+    max_count = 0
+    max_idx = -1
+    for i in range(len(arr)):
+        row_count = len(arr[i]) - lower_bound(arr[i], 1)
+        if row_count > max_count:
+            max_count = row_count
+            max_idx = i
+    return max_idx
+
+def search_matrix(matrix: list[list[int]], target: int) -> bool:
+    # top, bottom = 0, len(matrix) - 1
+    # while top <= bottom:
+    #     mid = (top + bottom) // 2
+    #     # if target is in the mid row
+    #     if matrix[mid][0] <= target and target <= matrix[mid][-1]:
+    #         # search target in this row
+    #         low, high = 0, len(matrix[mid])
+    #         while low <= high:
+    #             row_mid = (low + high) // 2
+    #             if matrix[mid][row_mid] == target:
+    #                 return True
+    #             elif matrix[mid][row_mid] < target:
+    #                 low = row_mid + 1
+    #             else:
+    #                 high = row_mid - 1
+    #         return False
+    #     elif matrix[mid][0] > target:
+    #         bottom = mid - 1
+    #     else:
+    #         top = mid + 1
+    # return False
+
+    n = len(matrix)
+    m = len(matrix[0])
+
+    # apply binary search:
+    low = 0
+    high = n * m - 1
+    while low <= high:
+        mid = (low + high) // 2
+        row = mid // m # calculate row of 2D matrix from flatten 1D
+        col = mid % m
+        if matrix[row][col] == target:
+            return True
+        elif matrix[row][col] < target:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return False
+
+def search_matrix2(matrix: list[list[int]], target: int) -> bool:
+    n, m = len(matrix), len(matrix[0])
+    row, col = 0, m - 1
+    while row < n and col >= 0:
+        if matrix[row][col] == target:
+            return True
+        elif matrix[row][col] < target:
+            row += 1
+        else:
+            col -= 1
+    return False
+
+def find_peak_grid(mat: list[list[int]]) -> list[int]:
+    """Returns peak element's position in 2D array"""
+    def max_element(mat: list[list[int]], col: int, rows: int) -> int:
+            max_value = 0
+            max_idx = -1
+            for i in range(rows):
+                if mat[i][col] > max_value:
+                    max_value = mat[i][col]
+                    max_idx = i
+            return max_idx
+    m, n = len(mat), len(mat[0])
+    low, high = 0, n - 1
+    while low <= high:
+        mid = (low + high) // 2
+        row = max_element(mat, mid, m)
+        left = mat[row][mid - 1] if mid > 0 else -1
+        right = mat[row][mid + 1] if mid < n - 1 else -1
+        if left < mat[row][mid] and mat[row][mid] > right:
+            return [row, mid]
+        elif left > mat[row][mid]:
+            high = mid - 1
+        else:
+            low = mid + 1
+
+def median(matrix, m, n):
+    """Returns the median of matrix"""
+    def countSmallEqual(matrix, m, x):
+        cnt = 0
+        for i in range(m):
+            cnt += upper_bound(matrix[i], x)
+        return cnt
+
+    low = float('inf')
+    high = float('-inf')
+
+    # point low and high to the right elements
+    for i in range(m):
+        low = min(low, matrix[i][0])
+        high = max(high, matrix[i][n - 1])
+
+    req = (n * m) // 2
+    while low <= high:
+        mid = (low + high) // 2
+        smallEqual = countSmallEqual(matrix, m, mid)
+        if smallEqual <= req:
+            low = mid + 1
+        else:
+            high = mid - 1
+    return low
+
+
 if __name__ == '__main__':
     n = int(input())
     arr = list(map(int, input().strip().split()))
@@ -500,4 +617,24 @@ if __name__ == '__main__':
     # print(smallest_divisor(arr, n))
     # print(least_weight_capacity(arr, n))
     # print(find_kth_positive(arr, n))
-    print(split_array(arr, n))
+    # print(split_array(arr, n))
+
+    # arr = [
+    #     [0, 1, 1, 1],
+    #     [0, 0, 1, 1],
+    #     [1, 1, 1, 1],
+    #     [0, 0, 0, 0]
+    #     ]
+    # print(row_with_max_1s(arr))
+
+    # matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]]
+    # target = 3
+    # print(search_matrix(matrix, target))
+
+    # mat = [[10,20,15],[21,30,14],[7,16,32]]
+    # print(find_peak_grid(mat))
+
+    M = [[1, 3, 5], 
+     [2, 6, 9], 
+     [3, 6, 9]]
+    print(median(M, 3, 3))
