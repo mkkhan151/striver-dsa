@@ -1,6 +1,8 @@
 from typing import Any, Dict, Optional
 import sys
 
+from click import Option
+
 sys.stdin = open('input.txt')
 sys.stdout = open('output.txt', 'w')
 
@@ -490,6 +492,79 @@ def get_intersection_node(headA: Optional[ListNode], headB: Optional[ListNode]) 
         headB = headB.next
     return None
 
+def reverse_k_group(head: Optional[ListNode], k: int) -> Optional[ListNode]:
+    """ Reverse each k nodes in the list and return the head of the list """
+
+    # Base Condition
+    if not head:
+        return head
+    
+    # Take first k nodes and recursively call the remaining list
+    curr = head
+    count = 1
+    while curr.next and count < k:
+        curr = curr.next
+        count += 1
+    
+    # Return list as it is if remaining nodes are less than k
+    if count < k:
+        return head
+    # Otherwise call the remainig list for reverse
+    rem = curr.next
+    curr.next = None
+    rem = reverse_k_group(rem, k)
+
+    # now revers the current k nodes in itself and return them along with remaining    
+    curr = head.next
+    while curr:
+        head.next = rem
+        rem = head
+        head = curr
+        curr = curr.next
+    head.next = rem
+    return head
+
+def rotate_right(head: Optional[ListNode], k: int) -> Optional[ListNode]:
+    """ Rotates the linked list to right by k nodes """
+
+    if not head:
+        return head
+    
+    n = 1
+    tail = head
+    while tail.next:
+        n += 1
+        tail = tail.next
+    k = k % n
+
+    # Edge case: if k = 0, don't rotate just return as it is
+    if k == 0:
+        return head
+
+    # Brute force
+    # while k > 0:
+    #     tail = head
+    #     while tail.next and tail.next.next:
+    #         tail = tail.next
+    #     tail.next.next = head
+    #     head = tail.next
+    #     tail.next = None
+    #     k -= 1
+    # return head
+
+    # Optimized
+    slow = fast = head
+    while fast and k > 0:
+        fast = fast.next
+        k -= 1
+    while fast.next:
+        fast = fast.next
+        slow = slow.next
+    fast.next = head
+    head = slow.next
+    slow.next = None
+    return head
+
 if __name__ == '__main__':
     # arr = list(map(int, input().split()))
     # head = construct_LL(arr)
@@ -509,6 +584,9 @@ if __name__ == '__main__':
     # print_list(add_two_numbers(num1, num2))
 
     arr = list(map(int, input().split()))
+    k = int(input())
     head = construct_LL(arr)
     # print_list(delete_middle(head))
-    print_list(sort_list(head))
+    # print_list(sort_list(head))
+    # print_list(reverse_k_group(head, k))
+    print_list(rotate_right(head, k))
