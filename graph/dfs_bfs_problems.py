@@ -1,5 +1,6 @@
 import sys
 from collections import deque
+from typing import List, Set
 
 sys.stdin = open("input.txt")
 sys.stdout = open("output.txt", "w")
@@ -196,6 +197,147 @@ class Solution:
                     return True
         return False
 
+    def updateMatrix(self, mat: list[list[int]]) -> list[list[int]]:
+        """Find the nearest 0 for each cell."""
+        m, n = len(mat), len(mat[0])
+        q = deque()  # for BFS
+        visited = [[False for _ in range(n)] for _ in range(m)]
+        ans = [[-1 for _ in range(n)] for _ in range(m)]
+
+        for i in range(m):
+            for j in range(n):
+                if mat[i][j] == 0:
+                    visited[i][j] = True
+                    q.append((i, j, 0))
+
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        while q:
+            i, j, distance = q.popleft()
+            ans[i][j] = distance
+            # check all four directions for neighbors
+            for di, dj in directions:
+                ni, nj = i + di, j + dj
+
+                if ni < 0 or ni >= m or nj < 0 or nj >= n or visited[ni][nj]:
+                    # skip if visited or out of bound
+                    continue
+                # mark as visited
+                visited[ni][nj] = True
+                # add to queue with distance + 1
+                q.append((ni, nj, distance + 1))
+        return ans
+
+    def solve(self, board: list[list[str]]) -> None:
+        """
+        capture regions that are surrounded by "X"
+        """
+        rows, cols = len(board), len(board[0])
+        # handle empty matrix
+        if rows == 0 or cols == 0:
+            return
+        visited = [[False] * cols for _ in range(rows)]
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+        def dfs(r: int, c: int):
+            visited[r][c] = True
+            for dr, dc in directions:
+                nr, nc = r + dr, c + dc
+                if (
+                    nr < 0
+                    or nr >= rows
+                    or nc < 0
+                    or nc >= cols
+                    or board[nr][nc] == "X"
+                    or visited[nr][nc]
+                ):
+                    # skip if out of bound or visited or cell is X
+                    continue
+                dfs(nr, nc)
+
+        # Check the edges of board and mark them as visited if "O"
+        # DFS will mark all the connected node as visited
+        for row in range(rows):
+            if not visited[row][0] and board[row][0] == "O":
+                dfs(row, 0)
+            if not visited[row][cols - 1] and board[row][cols - 1] == "O":
+                dfs(row, cols - 1)
+
+        for col in range(cols):
+            if not visited[0][col] and board[0][col] == "O":
+                dfs(0, col)
+            if not visited[rows - 1][col] and board[rows - 1][col] == "O":
+                dfs(rows - 1, col)
+
+        # Now mark all the ramaining unvisited "O" as "X"
+        for i in range(rows):
+            for j in range(cols):
+                if board[i][j] == "O" and not visited[i][j]:
+                    board[i][j] = "X"
+
+    def numIslands(self, grid: List[List[str]]) -> int:
+        """
+        Given an m x n 2D binary grid which represents a map of '1's (land) and '0's (water), return the number of islands.
+        """
+        if not grid:
+            return 0
+
+        rows, cols = len(grid), len(grid[0])
+        visited = [[False for _ in range(cols)] for _ in range(rows)]
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        islands = 0
+
+        def dfs(r, c):
+            visited[r][c] = True
+
+            for dr, dc in directions:
+                nr, nc = r + dr, c + dc
+                if (
+                    nr < 0
+                    or nc < 0
+                    or nr >= rows
+                    or nc >= cols
+                    or visited[nr][nc]
+                    or grid[nr][nc] == "0"
+                ):
+                    continue
+                dfs(nr, nc)
+
+        for row in range(rows):
+            for col in range(cols):
+                if grid[row][col] != "0" and not visited[row][col]:
+                    islands += 1
+                    dfs(row, col)
+        return islands
+
+    def pacificAtlantic(self, heights: List[List[int]]) -> List[List[int]]:
+        if not heights:
+            return []
+
+        rows, cols = len(heights), len(heights[0])
+        pacific_reachable = set()
+        atlantic_reachable = set()
+
+        def dfs(r: int, c: int, reachable: Set):
+            reachable.add((r, c))
+
+            for dr, dc in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < rows and 0 <= nc < cols:
+                    if (nr, nc) not in reachable and heights[nr][nc] >= heights[r][c]:
+                        dfs(nr, nc, reachable)
+
+        # using boundaries dfs
+        # starting from boundaries and going to cells that are reachable from boundaries
+        for row in range(rows):
+            dfs(row, 0, pacific_reachable)
+            dfs(row, cols - 1, atlantic_reachable)
+
+        for col in range(cols):
+            dfs(0, col, pacific_reachable)
+            dfs(rows - 1, col, atlantic_reachable)
+
+        return list(pacific_reachable & atlantic_reachable)
+
 
 if __name__ == "__main__":
     sol = Solution()
@@ -213,5 +355,34 @@ if __name__ == "__main__":
     # image = [[1, 1, 1], [1, 1, 0], [1, 0, 1]]
     # print(sol.floodFill(image, 1, 1, 2))
 
-    adj_list = [[1, 2], [0, 4], [0, 3, 5], [2], [1, 6], [2, 6], [4, 5]]
-    print(sol.isCycle(7, adj_list))
+    # adj_list = [[1, 2], [0, 4], [0, 3, 5], [2], [1, 6], [2, 6], [4, 5]]
+    # print(sol.isCycle(7, adj_list))
+
+    # mat = [[0, 0, 0], [0, 1, 0], [1, 1, 1]]
+    # print(sol.updateMatrix(mat))
+
+    # board = [
+    #     ["X", "X", "X", "X"],
+    #     ["X", "O", "O", "X"],
+    #     ["X", "X", "O", "X"],
+    #     ["X", "O", "X", "X"],
+    # ]
+    # sol.solve(board)
+    # print(board)
+
+    # grid = [
+    #     ["1", "1", "0", "0", "0"],
+    #     ["1", "1", "0", "0", "0"],
+    #     ["0", "0", "1", "0", "0"],
+    #     ["0", "0", "0", "1", "1"],
+    # ]
+    # print(sol.numIslands(grid))
+
+    heights = [
+        [1, 2, 2, 3, 5],
+        [3, 2, 3, 4, 4],
+        [2, 4, 5, 3, 1],
+        [6, 7, 1, 4, 5],
+        [5, 1, 1, 2, 4],
+    ]
+    print(sol.pacificAtlantic(heights))
