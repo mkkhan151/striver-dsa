@@ -481,6 +481,128 @@ class Solution:
             max_width = max(max_width, right_pos - left_pos + 1)
         return max_width
 
+    def minimumKnightMoves(self, x: int, y: int) -> int:
+        """
+        Returns the minimum number of moves the knight in chess need to reach (x, y) position.
+        """
+        # Sol 1
+        # _min, _max = -200, 200
+        # moves = 0
+        # q = deque([(0, 0)])
+        # visited = set([(0, 0)])
+
+        # # Relative offsets for all 8 possible knight moves
+        # directions = [
+        #     (2, 1),
+        #     (2, -1),
+        #     (-2, 1),
+        #     (-2, -1),
+        #     (1, 2),
+        #     (1, -2),
+        #     (-1, 2),
+        #     (-1, -2),
+        # ]
+
+        # while q:
+        #     level_size = len(q)
+
+        #     for _ in range(level_size):
+        #         curr_x, curr_y = q.popleft()
+        #         for dx, dy in directions:
+        #             nx, ny = curr_x + dx, curr_y + dy
+
+        #             # skip if out of bound
+        #             if _min <= nx <= _max and _min <= ny <= _max:
+        #                 # if we get to the target return moves
+        #                 if nx == x and ny == y:
+        #                     return moves + 1
+        #                 if (nx, ny) not in visited:
+        #                     visited.add((nx, ny))
+        #                     q.append((nx, ny))
+        #     # we have visited all the node in current level
+        #     moves += 1
+        # return -1
+
+        # Sol 2
+        _min, _max = -200, 200
+        # Relative offsets for all 8 possible knight moves
+        directions = [
+            (2, 1),
+            (2, -1),
+            (-2, 1),
+            (-2, -1),
+            (1, 2),
+            (1, -2),
+            (-1, 2),
+            (-1, -2),
+        ]
+        q = deque([(0, 0, 0)])  # cx, cy, moves
+        visited = set([(0, 0)])
+
+        while q:
+            cx, cy, moves = q.popleft()
+
+            if (cx, cy) == (x, y):
+                return moves
+
+            # check all possible moves of the knight from the current position
+            for dx, dy in directions:
+                nx, ny = cx + dx, cy + dy
+
+                # if the new position is not visited yet, add it to the queue
+                # also mark it as visited and increment the number of moves
+                if (
+                    _min <= nx <= _max
+                    and _min <= ny <= _max
+                    and (nx, ny) not in visited
+                ):
+                    visited.add((nx, ny))
+                    q.append((nx, ny, moves + 1))
+        # if the target position is not reachable, return -1
+        return -1
+
+    def numBusesToDestination(
+        self, routes: List[List[int]], source: int, target: int
+    ) -> int:
+        """
+        Return the least number of buses you must take to travel from source to target. Return -1 if it is not possible.
+        """
+        if source == target:
+            return 0
+        # Create a dictionary mapping bus top to bus route index
+        # These are the edges in our graph
+        bus_stops = dict()
+        for i, route in enumerate(routes):
+            for stop in route:
+                if stop not in bus_stops:
+                    bus_stops[stop] = [i]
+                else:
+                    bus_stops[stop].append(i)
+        if source not in bus_stops:
+            return -1
+
+        visited = set()
+        q = deque()
+
+        # Initialize BFS queue and visited set
+        for bus in bus_stops[source]:
+            q.append((bus, 1))
+            visited.add(bus)
+
+        while q:
+            curr_bus, num_changes = q.popleft()
+
+            for stop in routes[curr_bus]:
+                if stop == target:
+                    return num_changes
+
+                # add neighbors to the queue
+                for connected_bus in bus_stops[stop]:
+                    if connected_bus not in visited:
+                        q.append((connected_bus, num_changes + 1))
+                        visited.add(connected_bus)
+        return -1  # no possible route found
+
 
 if __name__ == "__main__":
     sol = Solution()
@@ -543,4 +665,9 @@ if __name__ == "__main__":
     # print(sol.leverOrderSum(root))
     # print(sol.rightSideView(root))
     # print(sol.zigzagLevelOrder(root))
-    print(sol.widthOfBinaryTree(root))
+    # print(sol.widthOfBinaryTree(root))
+
+    # print(sol.minimumKnightMoves(1, 2))
+
+    routes = [[7, 12], [4, 5, 15], [6], [15, 19], [9, 12, 13]]
+    print(sol.numBusesToDestination(routes, 15, 12))
