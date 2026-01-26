@@ -1,9 +1,17 @@
 import sys
 from collections import deque
-from typing import List, Set
+from typing import List, Optional, Set
 
 sys.stdin = open("input.txt")
 sys.stdout = open("output.txt", "w")
+
+
+# Definition for a binary tree node.
+class TreeNode:
+    def __init__(self, val: int = 0, left=None, right=None) -> None:
+        self.val = val
+        self.left = left
+        self.right = right
 
 
 class Solution:
@@ -338,6 +346,141 @@ class Solution:
 
         return list(pacific_reachable & atlantic_reachable)
 
+    def levelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
+        """
+        Returns the level order traversal of binary tree
+        """
+        if not root:
+            return []
+
+        queue = deque([root])
+        result = []
+
+        while queue:
+            k = len(queue)
+            curr_level = []
+            for _ in range(k):
+                curr = queue.popleft()
+                curr_level.append(curr.val)
+
+                if curr.left:
+                    queue.append(curr.left)
+                if curr.right:
+                    queue.append(curr.right)
+            result.append(curr_level)
+        return result
+
+    def leverOrderSum(self, root: Optional[TreeNode]) -> List[int]:
+        """
+        Returns the sum of each level in binary tree
+        """
+        if not root:
+            return []
+        q = deque([root])
+        res = []
+
+        while q:
+            k = len(q)
+            sum = 0
+            for _ in range(k):
+                curr = q.popleft()
+                sum += curr.val
+
+                if curr.left:
+                    q.append(curr.left)
+                if curr.right:
+                    q.append(curr.right)
+            res.append(sum)
+        return res
+
+    def rightSideView(self, root: Optional[TreeNode]) -> List[int]:
+        """
+        Returns the right most node at each level of binary tree
+        """
+        if not root:
+            return []
+
+        q = deque([root])
+        res = []
+
+        while q:
+            k = len(q)
+            right_most: TreeNode | None = None
+
+            for _ in range(k):
+                right_most = q.popleft()
+
+                if right_most.left:
+                    q.append(right_most.left)
+                if right_most.right:
+                    q.append(right_most.right)
+            res.append(right_most.val)  # type: ignore
+        return res
+
+    def zigzagLevelOrder(self, root: Optional[TreeNode]) -> List[List[int]]:
+        """
+        Given the root of a binary tree, return the zigzag level order traversal of its nodes' values. (i.e., from left to right, then right to left for the next level and alternate between).
+        """
+
+        if not root:
+            return []
+
+        q = deque([root])
+        res = []
+        left_to_right = True
+
+        while q:
+            k = len(q)
+            nodes_for_level = deque()
+
+            for _ in range(k):
+                curr = q.popleft()
+
+                if left_to_right:
+                    nodes_for_level.append(curr.val)
+                else:
+                    nodes_for_level.appendleft(curr.val)
+
+                if curr.left:
+                    q.append(curr.left)
+                if curr.right:
+                    q.append(curr.right)
+            res.append(list(nodes_for_level))
+            left_to_right = not left_to_right
+        return res
+
+    def widthOfBinaryTree(self, root: Optional[TreeNode]) -> int:
+        """
+        Returns the width of binary tree
+        """
+        if not root:
+            return 0
+
+        q = deque([(root, 0)])
+        max_width = 0
+
+        while q:
+            level_size = len(q)
+
+            # get the leftmost position
+            _, left_pos = q[0]
+            right_pos = -1
+
+            for i in range(level_size):
+                node, pos = q.popleft()
+
+                # update rightPos to the position of the rightmost node
+                # when we reach the last node in the level
+                if i == level_size - 1:
+                    right_pos = pos
+
+                if node.left:
+                    q.append((node.left, 2 * pos))
+                if node.right:
+                    q.append((node.right, 2 * pos + 1))
+            max_width = max(max_width, right_pos - left_pos + 1)
+        return max_width
+
 
 if __name__ == "__main__":
     sol = Solution()
@@ -378,11 +521,26 @@ if __name__ == "__main__":
     # ]
     # print(sol.numIslands(grid))
 
-    heights = [
-        [1, 2, 2, 3, 5],
-        [3, 2, 3, 4, 4],
-        [2, 4, 5, 3, 1],
-        [6, 7, 1, 4, 5],
-        [5, 1, 1, 2, 4],
-    ]
-    print(sol.pacificAtlantic(heights))
+    # heights = [
+    #     [1, 2, 2, 3, 5],
+    #     [3, 2, 3, 4, 4],
+    #     [2, 4, 5, 3, 1],
+    #     [6, 7, 1, 4, 5],
+    #     [5, 1, 1, 2, 4],
+    # ]
+    # print(sol.pacificAtlantic(heights))
+
+    root = TreeNode(
+        3,
+        TreeNode(9),
+        TreeNode(
+            20,
+            TreeNode(15),
+            TreeNode(7),
+        ),
+    )
+    # print(sol.levelOrder(root))
+    # print(sol.leverOrderSum(root))
+    # print(sol.rightSideView(root))
+    # print(sol.zigzagLevelOrder(root))
+    print(sol.widthOfBinaryTree(root))
