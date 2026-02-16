@@ -3,3 +3,4 @@ output.txt
 *.drawio
 *.dio
 .claude/
+__pycache__/
